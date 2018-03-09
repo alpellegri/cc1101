@@ -6,8 +6,29 @@ typedef struct {
   uint8_t data;
 } registerSetting_t;
 
+// Address Config = No address check
+// Base Frequency = 433.919830
+// CRC Autoflush = false
+// CRC Enable = true
+// Carrier Frequency = 433.919830
+// Channel Number = 0
+// Channel Spacing = 199.951172
+// Data Format = Normal mode
+// Data Rate = 4.79794
+// Deviation = 5.157471
+// Device Address = 0
+// Manchester Enable = true
+// Modulation Format = ASK/OOK
+// PA Ramping = false
+// Packet Length = 255
+// Packet Length Mode = Variable packet length mode. Packet length configured by
+// the first byte after sync word Preamble Count = 4 RX Filter BW = 135.416667
+// Sync Word Qualifier Mode = 30/32 sync word bits detected
+// TX Power = 10
+// Whitening = false
+// PA table
 #define PA_TABLE                                                               \
-  { 0x50, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+  { 0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 
 static const registerSetting_t preferredSettings[] = {
     {CC1101_IOCFG0, 0x06},  {CC1101_FIFOTHR, 0x47}, {CC1101_PKTCTRL0, 0x05},

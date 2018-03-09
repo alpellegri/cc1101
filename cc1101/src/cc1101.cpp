@@ -36,7 +36,15 @@ uint8_t SPI_Rx(void) { return (uint8_t)(SPI1W0 & 0xff); }
  *
  * @return      describe return value, if any
  */
-void exp430RfSpiInit(void) {}
+void cc1101Init(void) {
+  // SPI.setHwCs(SS);
+  pinMode(SS, OUTPUT);
+  digitalWrite(SS, HIGH);
+  SPI.begin();
+  SPI.setFrequency(1000000);
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE0);
+}
 
 /******************************************************************************
  * @fn          function name

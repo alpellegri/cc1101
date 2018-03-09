@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cc1101_spi.h"
 #include "cc1101_conf.h"
+#include "cc1101_spi.h"
 
 #define LEDOUTPUT 16
 #define PKTLEN 30
@@ -28,6 +28,8 @@ void setup() {
   uint8_t data;
   Serial.begin(115200);
 
+  cc1101Init();
+
   // setup the blinker output
   pinMode(LEDOUTPUT, OUTPUT);
   digitalWrite(LEDOUTPUT, LOW);
@@ -46,14 +48,23 @@ void setup() {
 uint32_t schedule_time;
 
 void loop() {
+  uint8_t data;
   uint8 txBuffer[PKTLEN + 1] = {0};
 
-  // blinker();
-
   uint32_t current_time = millis();
-  if ((current_time - schedule_time) > 500) {
+  if ((current_time - schedule_time) > 1000) {
     schedule_time = current_time;
     digitalWrite(LEDOUTPUT, LOW);
+
+    Serial.println();
+    Serial.print("CC1101_PARTNUM ");
+    cc1101SpiReadReg(CC1101_PARTNUM, &data, 1);
+    Serial.println(data);
+    Serial.print("CC1101_VERSION ");
+    cc1101SpiReadReg(CC1101_VERSION, &data, 1);
+    Serial.println(data);
+
+#if 1
     // create a random packet with PKTLEN + 2 byte packet counter + n x random
     // bytes
     createPacket(txBuffer);
@@ -63,6 +74,7 @@ void loop() {
 
     // strobe TX to send packet
     trxSpiCmdStrobe(CC1101_STX);
+#endif
     digitalWrite(LEDOUTPUT, HIGH);
   }
 }

@@ -28,11 +28,11 @@
 
 #define SPI_BEGIN()                                                            \
   do {                                                                         \
-    SPI.begin();                                                               \
+    digitalWrite(SS, LOW);                                                     \
   } while (0);
 #define SPI_WAIT_MISO()                                                        \
   do {                                                                         \
-    delay(10);                                                                 \
+    delay(50);                                                                 \
   \
 } while (0);
 #define SPI_TX(x)                                                              \
@@ -43,7 +43,7 @@
 #define SPI_RX() SPI_Rx()
 #define SPI_END()                                                              \
   do {                                                                         \
-    SPI.end();                                                                 \
+    digitalWrite(SS, HIGH);                                                    \
   } while (0);
 
 /******************************************************************************
@@ -55,7 +55,7 @@ typedef uint8_t rfStatus_t;
 /******************************************************************************
  * PROTOTYPES
  */
-void exp430RfSpiInit(void);
+void cc1101Init(void);
 
 uint8_t trx8BitRegAccess(uint8_t accessType, uint8_t addrByte, uint8_t *pData,
                          uint16_t len);

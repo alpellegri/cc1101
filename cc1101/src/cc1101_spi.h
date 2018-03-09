@@ -39,9 +39,9 @@
 #define CC1101_FSCTRL0 0x0C  /*  FSCTRL0  - Frequency synthesizer control */
 #define CC1101_FREQ2 0x0D    /*  FREQ2    - Frequency control word, high byte */
 #define CC1101_FREQ1                                                           \
-  0x0E                    /*  FREQ1    - Frequency control word, middle byte \ \
-                           */
-#define CC1101_FREQ0 0x0F /*  FREQ0    - Frequency control word, low byte */
+  0x0E /*  FREQ1    - Frequency control word, middle byte \ \                  \
+        */
+#define CC1101_FREQ0 0x0F   /*  FREQ0    - Frequency control word, low byte */
 #define CC1101_MDMCFG4 0x10 /*  MDMCFG4  - Modem configuration */
 #define CC1101_MDMCFG3 0x11 /*  MDMCFG3  - Modem configuration */
 #define CC1101_MDMCFG2 0x12 /*  MDMCFG2  - Modem configuration */
@@ -86,8 +86,8 @@
   0x32 /*  FREQEST    � Frequency Offset Estimate from demodulator */
 #define CC1101_LQI                                                             \
   0x33 /*  LQI        � Demodulator estimate for Link Quality */
-#define CC1101_RSSI                                                            \
-  0x34 /*  RSSI       � Received signal strength indication \                \
+#define CC1101_RSSI                                                              \
+  0x34 /*  RSSI       � Received signal strength indication \                \ \
         */
 #define CC1101_MARCSTATE                                                       \
   0x35 /*  MARCSTATE  � Main Radio Control State Machine state */
@@ -125,6 +125,7 @@
 #define CC1101_STX                                                             \
   0x35 /*  STX     - Enable TX. If in RX state, only enable TX if CCA passes.  \
         * \                                                                    \
+        * \ \                                                                             \
         */
 #define CC1101_SIDLE                                                           \
   0x36 /*  SIDLE   - Exit RX / TX, turn off frequency synthesizer. */

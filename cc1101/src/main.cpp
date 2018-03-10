@@ -3,8 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "halRf.h"
+#include "halSpi.h"
+
 #include "cc1101_conf.h"
-#include "cc1101_spi.h"
 
 #define LEDOUTPUT 16
 #define PKTLEN 30
@@ -28,7 +30,7 @@ void setup() {
   uint8_t data;
   Serial.begin(115200);
 
-  cc1101Init();
+  halRfInit();
 
   // setup the blinker output
   pinMode(LEDOUTPUT, OUTPUT);
@@ -36,10 +38,10 @@ void setup() {
 
   Serial.println();
   Serial.print("CC1101_PARTNUM ");
-  cc1101SpiReadReg(CC1101_PARTNUM, &data, 1);
+  halSpiReadBurstReg(CC1101_PARTNUM, &data, 1);
   Serial.println(data);
   Serial.print("CC1101_VERSION ");
-  cc1101SpiReadReg(CC1101_VERSION, &data, 1);
+  halSpiReadBurstReg(CC1101_VERSION, &data, 1);
   Serial.println(data);
 
   registerConfig();
@@ -58,10 +60,10 @@ void loop() {
 
     Serial.println();
     Serial.print("CC1101_PARTNUM ");
-    cc1101SpiReadReg(CC1101_PARTNUM, &data, 1);
+    data = halSpiReadReg(CC1101_PARTNUM);
     Serial.println(data);
     Serial.print("CC1101_VERSION ");
-    cc1101SpiReadReg(CC1101_VERSION, &data, 1);
+    data = halSpiReadReg(CC1101_VERSION);
     Serial.println(data);
 
 #if 1
@@ -70,11 +72,9 @@ void loop() {
     createPacket(txBuffer);
 
     // write packet to tx fifo
-    cc1101SpiWriteTxFifo(txBuffer, sizeof(txBuffer));
-
-    // strobe TX to send packet
-    trxSpiCmdStrobe(CC1101_STX);
+    halRfSendPacket(txBuffer, sizeof(txBuffer));
 #endif
+
     digitalWrite(LEDOUTPUT, HIGH);
   }
 }

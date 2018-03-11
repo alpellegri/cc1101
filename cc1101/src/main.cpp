@@ -36,43 +36,53 @@ void setup() {
   pinMode(LEDOUTPUT, OUTPUT);
   digitalWrite(LEDOUTPUT, LOW);
 
+  registerConfig();
   Serial.println();
-  Serial.print("CC1101_PARTNUM ");
-  halSpiReadBurstReg(CC1101_PARTNUM, &data, 1);
+  Serial.print("CC1101_PKTCTRL0 ");
+  data = halSpiReadReg(CC1101_PKTCTRL0);
   Serial.println(data);
-  Serial.print("CC1101_VERSION ");
-  halSpiReadBurstReg(CC1101_VERSION, &data, 1);
+  Serial.print("CC1101_MDMCFG2 ");
+  data = halSpiReadReg(CC1101_MDMCFG2);
   Serial.println(data);
 
-  registerConfig();
+  // halSpiStrobe(CC1101_SRX);
 }
 
 uint32_t schedule_time;
 
 void loop() {
   uint8_t data;
-  uint8 txBuffer[PKTLEN + 1] = {0};
+  uint8 Buffer[PKTLEN + 1] = {0};
+  uint8 BufferLen;
+  uint16_t i;
 
   uint32_t current_time = millis();
   if ((current_time - schedule_time) > 1000) {
     schedule_time = current_time;
     digitalWrite(LEDOUTPUT, LOW);
 
-    Serial.println();
-    Serial.print("CC1101_PARTNUM ");
-    data = halSpiReadReg(CC1101_PARTNUM);
-    Serial.println(data);
-    Serial.print("CC1101_VERSION ");
-    data = halSpiReadReg(CC1101_VERSION);
-    Serial.println(data);
-
-#if 1
+#if 0
     // create a random packet with PKTLEN + 2 byte packet counter + n x random
     // bytes
-    createPacket(txBuffer);
+    createPacket(Buffer);
 
     // write packet to tx fifo
-    halRfSendPacket(txBuffer, sizeof(txBuffer));
+    halRfSendPacket(Buffer, sizeof(Buffer));
+#else
+#if 1
+    halSpiStrobe(CC1101_SRX);
+#else
+    data = halSpiReadStatus(CC1101_MARCSTATE);
+    Serial.println(data);
+    data = halSpiGetStatus();
+    Serial.println(data);
+    halRfReceivePacket(Buffer, &BufferLen);
+    Serial.printf("Packet length: %d\n", BufferLen);
+    for (i = 0; i < BufferLen; i++) {
+      Serial.printf("%02X ", (uint8_t)Buffer[i]);
+    }
+    Serial.printf("\n", BufferLen);
+#endif
 #endif
 
     digitalWrite(LEDOUTPUT, HIGH);

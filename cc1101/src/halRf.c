@@ -2,7 +2,15 @@
 #include "halSpi.h"
 #include "spiwrap.h"
 
-void halRfInit(void) { SPI_INIT(); }
+#define PORT_GDO0 5
+
+/* Handle interrupt from CC1101 (INT0) gdo0 on pin2 */
+void cc1101signalsInterrupt(void) {}
+
+void halRfInit(void) {
+  SPI_INIT();
+  SetCb1(PORT_GDO0, cc1101signalsInterrupt);
+}
 
 //-------------------------------------------------------------------------------------------------------
 //  void halRfSendPacket(BYTE *txBuffer, UINT8 size)
@@ -28,15 +36,11 @@ void halRfSendPacket(BYTE *txBuffer, UINT8 size) {
   halSpiWriteBurstReg(CC1101_TXFIFO, txBuffer, size);
   halSpiStrobe(CC1101_STX);
 
-#if 0
   // Wait for GDO0 to be set -> sync transmitted
-  while (!GDO0_PIN)
-    ;
+  CTRL_WAIT_SYNC(PORT_GDO0);
 
   // Wait for GDO0 to be cleared -> end of packet
-  while (GDO0_PIN)
-    ;
-#endif
+  CTRL_WAIT_EOT(PORT_GDO0);
 } // halRfSendPacket
 
 //-------------------------------------------------------------------------------------------------------
@@ -76,15 +80,11 @@ BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length) {
 
   halSpiStrobe(CC1101_SRX);
 
-#if 0
-  // Wait for GDO0 to be set -> sync received
-  while (!GDO0_PIN)
-    ;
+  // Wait for GDO0 to be set -> sync transmitted
+  CTRL_WAIT_SYNC(PORT_GDO0);
 
   // Wait for GDO0 to be cleared -> end of packet
-  while (GDO0_PIN)
-    ;
-#endif
+  CTRL_WAIT_EOT(PORT_GDO0);
 
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
@@ -98,11 +98,15 @@ BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length) {
       halSpiReadBurstReg(CC1101_RXFIFO, rxBuffer, packetLength);
       *length = packetLength;
 
+#if 0
       // Read the 2 appended status bytes (status[0] = RSSI, status[1] = LQI)
       halSpiReadBurstReg(CC1101_RXFIFO, status, 2);
 
       // MSB of LQI is the CRC_OK bit
       return (status[LQI] & CRC_OK);
+#else
+      return packetLength;
+#endif
     } else {
       *length = packetLength;
 
@@ -118,55 +122,3 @@ BOOL halRfReceivePacket(BYTE *rxBuffer, UINT8 *length) {
   } else
     return FALSE;
 } // halRfReceivePacket
-
-//-------------------------------------------------------------------------------------------------------
-//  BYTE spiGetTxStatus(void)
-//
-//  DESCRIPTION:
-//  This function transmits a No Operation Strobe (SNOP) to get the status of
-//  the radio.
-// Status byte:
-// ---------------------------------------------------------------------------
-//  |          |            |                                                 |
-//  | CHIP_RDY | STATE[2:0] | FIFO_BYTES_AVAILABLE (free bytes in the TX FIFO |
-//  |          |            |                                                 |
-//  ---------------------------------------------------------------------------
-// STATE[2:0]:
-// Value | State
-//  --------------------------
-//  000   | Idle
-//  001   | RX
-//  010   | TX
-//  011   | FSTXON
-//  100   | CALIBRATE
-//  101   | SETTLING
-//  110   | RXFIFO_OVERFLOW
-//  111   | TX_FIFO_UNDERFLOW
-//-------------------------------------------------------------------------------------------------------
-BYTE spiGetTxStatus(void) {} // spiGetTxStatus
-
-//-------------------------------------------------------------------------------------------------------
-//  BYTE spiGetRxStatus(void)
-//
-//  DESCRIPTION:
-//  This function transmits a No Operation Strobe (SNOP) with the read bit set
-//  to get the status of the radio.
-// Status byte:
-// --------------------------------------------------------------------------------
-//  |          |            |                                                  |
-//  | CHIP_RDY | STATE[2:0] | FIFO_BYTES_AVAILABLE (avail bytes in the RX FIFO |
-//  |          |            |                                                  |
-//  --------------------------------------------------------------------------------
-// STATE[2:0]:
-// Value | State
-//  --------------------------
-//  000   | Idle
-//  001   | RX
-//  010   | TX
-//  011   | FSTXON
-//  100   | CALIBRATE
-//  101   | SETTLING
-//  110   | RXFIFO_OVERFLOW
-//  111   | TX_FIFO_UNDERFLOW
-//-------------------------------------------------------------------------------------------------------
-BYTE spiGetRxStatus(void) {} // spiGetRxStatus

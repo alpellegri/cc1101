@@ -13,6 +13,11 @@
 extern "C" {
 #endif
 
+void SetCb1(BYTE pin, void (*cb)(void));
+
+void CTRL_WAIT_SYNC(BYTE pin);
+void CTRL_WAIT_EOT(BYTE pin);
+
 void SPI_BEGIN(void);
 void SPI_WAIT(void);
 void SPI_WAIT_MISO(void);

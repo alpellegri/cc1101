@@ -1,6 +1,6 @@
 #include "common.h"
-#include "halSpi.h"
 #include "halRf.h"
+#include "halSpi.h"
 
 typedef struct {
   WORD addr;
@@ -34,18 +34,19 @@ typedef struct {
 static const registerSetting_t preferredSettings[] = {
   {CC1101_IOCFG0,      0x06},
   {CC1101_FIFOTHR,     0x47},
-  {CC1101_PKTCTRL0,    0x05},
+  {CC1101_SYNC1,       0xAA},
+  {CC1101_SYNC0,       0xAA},
+  {CC1101_PKTCTRL0,    0x01},
   {CC1101_FSCTRL1,     0x06},
   {CC1101_FREQ2,       0x10},
-  {CC1101_FREQ1,       0xB1},
-  {CC1101_FREQ0,       0x3B},
-  {CC1101_MDMCFG4,     0xC7},
+  {CC1101_FREQ1,       0xB0},
+  {CC1101_FREQ0,       0x71},
+  {CC1101_MDMCFG4,     0x98},
   {CC1101_MDMCFG3,     0x83},
-  {CC1101_MDMCFG2,     0x3B},
-  {CC1101_DEVIATN,     0x40},
+  {CC1101_MDMCFG2,     0x31},
+  {CC1101_DEVIATN,     0x15},
   {CC1101_MCSM0,       0x18},
   {CC1101_FOCCFG,      0x16},
-  {CC1101_AGCCTRL2,    0x43},
   {CC1101_WORCTRL,     0xFB},
   {CC1101_FREND0,      0x11},
   {CC1101_FSCAL3,      0xE9},
@@ -75,5 +76,17 @@ void registerConfig(void) {
 #ifdef PA_TABLE
   // write PA_TABLE
   halSpiWriteBurstReg(CC1101_PATABLE, paTable, sizeof(paTable));
+#endif
+
+#if 0
+  // halSpiWriteReg(CC1101_SYNC1, 0x55);
+  // halSpiWriteReg(CC1101_SYNC0, 0x55);
+  halSpiWriteReg(CC1101_PKTLEN, 0xFF);
+  halSpiWriteReg(CC1101_IOCFG2, 0x0B);
+  halSpiWriteReg(CC1101_IOCFG0, 0x06);
+  halSpiWriteReg(CC1101_PKTCTRL0, 0x02);
+  halSpiWriteReg(CC1101_PKTCTRL1, 0x00);
+  halSpiWriteReg(CC1101_MDMCFG2, 0x08);
+  halSpiWriteReg(CC1101_MCSM1, 0x00);
 #endif
 }

@@ -146,3 +146,36 @@ void halSpiWriteBurstReg(BYTE addr, BYTE *buffer, BYTE count) {
   }
   SPI_END();
 } // halSpiWriteBurstReg
+
+//-------------------------------------------------------------------------------------------------------
+//  UINT8 halSpiGetStatus(void)
+//
+//  DESCRIPTION:
+//  This function transmits a No Operation Strobe (SNOP) to get the status of
+//  the radio.
+// Status byte:
+// ---------------------------------------------------------------------------
+//  |          |            |                                                 |
+//  | CHIP_RDY | STATE[2:0] | FIFO_BYTES_AVAILABLE (free bytes in the TX FIFO |
+//  |          |            |                                                 |
+//  ---------------------------------------------------------------------------
+// STATE[2:0]:
+// Value | State
+//  --------------------------
+//  000   | Idle
+//  001   | RX
+//  010   | TX
+//  011   | FSTXON
+//  100   | CALIBRATE
+//  101   | SETTLING
+//  110   | RXFIFO_OVERFLOW
+//  111   | TX_FIFO_UNDERFLOW
+//-------------------------------------------------------------------------------------------------------
+UINT8 halSpiGetStatus(void) {
+  UINT8 x;
+  SPI_BEGIN();
+  SPI_TX(CC1101_SNOP | READ_BURST);
+  SPI_WAIT();
+  x = SPI_RX();
+  SPI_END();
+} // spiGetTxStatus

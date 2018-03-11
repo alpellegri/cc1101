@@ -7,10 +7,6 @@
 
 ******************************************************************************/
 
-/*****************************************************************************
- * INCLUDES
- */
-
 #include <Arduino.h>
 #include <SPI.h>
 
@@ -19,13 +15,39 @@
 
 BYTE SPI_Rx(void) { return (uint8_t)(SPI1W0 & 0xff); }
 
-void SPI_BEGIN(void) { digitalWrite(SS, LOW); }
-void SPI_WAIT(void) {}
-void SPI_WAIT_MISO(void) {}
-void SPI_WAIT_DONE(void) {}
-void SPI_TX(BYTE x) { SPI.transfer(x); }
-BYTE SPI_RX(void) { return SPI_Rx(); }
-void SPI_END(void) { digitalWrite(SS, HIGH); }
+void CTRL_WAIT_SYNC(BYTE pin) {
+  while(digitalRead(pin) == false) {
+    delay(1);
+  }
+}
+
+void CTRL_WAIT_EOT(BYTE pin) {
+  while(digitalRead(pin) == true) {
+    delay(1);
+  }
+}
+
+void ICACHE_RAM_ATTR SPI_BEGIN(void) { digitalWrite(SS, LOW); }
+void ICACHE_RAM_ATTR SPI_WAIT(void) {}
+void ICACHE_RAM_ATTR SPI_WAIT_MISO(void) {}
+void ICACHE_RAM_ATTR SPI_WAIT_DONE(void) {}
+void ICACHE_RAM_ATTR SPI_TX(BYTE x) { SPI.transfer(x); }
+BYTE ICACHE_RAM_ATTR SPI_RX(void) { return SPI_Rx(); }
+void ICACHE_RAM_ATTR SPI_END(void) { digitalWrite(SS, HIGH); }
+
+void (*cb1)(void);
+
+/* Handle interrupt from CC1101 (INT0) gdo0 on pin2 */
+uint8_t cnt;
+void ICACHE_RAM_ATTR Interrupt1(void) {
+  Serial.println(cnt++);
+  cb1();
+}
+
+void SetCb1(BYTE pin, void (*cb)(void)) {
+  cb1 = cb;
+  attachInterrupt(pin, Interrupt1, FALLING);
+}
 
 /******************************************************************************
  * @fn          function name

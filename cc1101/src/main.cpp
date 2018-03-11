@@ -3,10 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "halRf.h"
-#include "halSpi.h"
-
-#include "cc1101_conf.h"
+#include "cc1101.h"
 
 #define LEDOUTPUT 16
 #define PKTLEN 30
@@ -26,29 +23,21 @@ static void createPacket(uint8_t txBuffer[]) {
   }
 }
 
+CC1101 cc1101;
+
 void setup() {
   uint8_t data;
   Serial.begin(115200);
 
-  halRfInit();
+  cc1101.init();
 
   // setup the blinker output
   pinMode(LEDOUTPUT, OUTPUT);
   digitalWrite(LEDOUTPUT, LOW);
-
-  registerConfig();
-  Serial.println();
-  Serial.print("CC1101_PKTCTRL0 ");
-  data = halSpiReadReg(CC1101_PKTCTRL0);
-  Serial.println(data);
-  Serial.print("CC1101_MDMCFG2 ");
-  data = halSpiReadReg(CC1101_MDMCFG2);
-  Serial.println(data);
-
-  // halSpiStrobe(CC1101_SRX);
 }
 
 uint32_t schedule_time;
+uint32_t fame_cnt;
 
 void loop() {
   uint8_t data;
@@ -67,17 +56,18 @@ void loop() {
     createPacket(Buffer);
 
     // write packet to tx fifo
-    halRfSendPacket(Buffer, sizeof(Buffer));
+    cc1101.send(Buffer, sizeof(Buffer));
 #else
-#if 1
-    halSpiStrobe(CC1101_SRX);
+#if 0
+    // cc1101.strobe(CC1101_SRX);
 #else
-    data = halSpiReadStatus(CC1101_MARCSTATE);
+    fame_cnt++;
+    data = cc1101.readStatus(CC1101_MARCSTATE);
     Serial.println(data);
-    data = halSpiGetStatus();
+    data = cc1101.getStatus();
     Serial.println(data);
-    halRfReceivePacket(Buffer, &BufferLen);
-    Serial.printf("Packet length: %d\n", BufferLen);
+    cc1101.receive(Buffer, &BufferLen);
+    Serial.printf("%d Packet length: %d\n", fame_cnt, BufferLen);
     for (i = 0; i < BufferLen; i++) {
       Serial.printf("%02X ", (uint8_t)Buffer[i]);
     }

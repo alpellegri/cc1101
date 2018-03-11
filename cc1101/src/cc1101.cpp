@@ -354,7 +354,7 @@ bool CC1101::receive(uint8_t *rxBuffer, uint8_t *length) {
 
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
-  if ((readStatus(CC1101_RXuint8_tS) & uint8_tS_IN_RXFIFO)) {
+  if ((readStatus(CC1101_RXBYTES) & uint8_tS_IN_RXFIFO)) {
 
     // Read length byte
     packetLength = readReg(CC1101_RXFIFO);

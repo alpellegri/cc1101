@@ -8,7 +8,7 @@
 #define GDO0_PIN P0_6
 #define RSSI 0
 #define LQI 1
-#define uint8_tS_IN_RXFIFO 0x7F
+#define BYTES_IN_RXFIFO 0x7F
 
 // Definitions to support burst/single access:
 #define WRITE_BURST 0x40
@@ -133,126 +133,13 @@ public:
   CC1101(void);
   void init(void);
   void reset(void);
-  //----------------------------------------------------------------------------
-  //  void halSpiReadBurstReg(uint8_t addr, uint8_t *buffer, uint8_t count)
-  //
-  //  DESCRIPTION:
-  //      This function reads multiple CCxxx0 register, using SPI burst access.
-  //
-  //  ARGUMENTS:
-  //      uint8_t addr
-  //          Address of the first CCxxx0 register to be accessed.
-  //      uint8_t *buffer
-  //          Pointer to a byte array which stores the values read from a
-  //          corresponding range of CCxxx0 registers.
-  //      uint8_t count
-  //          Number of bytes to be written to the subsequent CCxxx0 registers.
-  //----------------------------------------------------------------------------
-  void readBurstReg(uint8_t addr, uint8_t *buffer, uint8_t count);
-
-  //----------------------------------------------------------------------------
-  //  uint8_t halSpiReadReg(uint8_t addr)
-  //
-  //  DESCRIPTION:
-  //      This function gets the value of a single specified CCxxx0 register.
-  //
-  //  ARGUMENTS:
-  //      uint8_t addr
-  //          Address of the CCxxx0 register to be accessed.
-  //
-  //  RETURN VALUE:
-  //      uint8_t
-  //          Value of the accessed CCxxx0 register.
-  //----------------------------------------------------------------------------
-  uint8_t readReg(uint8_t addr);
-
-  //----------------------------------------------------------------------------
-  //  uint8_t halSpiReadStatus(uint8_t addr)
-  //
-  //  DESCRIPTION:
-  //      This function reads a CCxxx0 status register.
-  //
-  //  ARGUMENTS:
-  //      uint8_t addr
-  //          Address of the CCxxx0 status register to be accessed.
-  //
-  //  RETURN VALUE:
-  //      uint8_t
-  //          Value of the accessed CCxxx0 status register.
-  //----------------------------------------------------------------------------
-  uint8_t readStatus(uint8_t addr);
-
-  //----------------------------------------------------------------------------
-  //  void halSpiStrobe(uint8_t strobe)
-  //
-  //  DESCRIPTION:
-  //      Function for writing a strobe command to the CCxxx0
-  //
-  //  ARGUMENTS:
-  //      uint8_t strobe
-  //          Strobe command
-  //----------------------------------------------------------------------------
-  void strobe(uint8_t strobe);
-
-  //----------------------------------------------------------------------------
-  //  void halSpiWriteReg(uint8_t addr, uint8_t value)
-  //
-  //  DESCRIPTION:
-  //      Function for writing to a single CCxxx0 register
-  //
-  //  ARGUMENTS:
-  //      uint8_t addr
-  //          Address of a specific CCxxx0 register to accessed.
-  //      uint8_t value
-  //          Value to be written to the specified CCxxx0 register.
-  //----------------------------------------------------------------------------
-  void writeReg(uint8_t addr, uint8_t value);
-
-  //----------------------------------------------------------------------------
-  //  void halSpiWriteBurstReg(uint8_t addr, uint8_t *buffer, uint8_t count)
-  //
-  //  DESCRIPTION:
-  //      This function writes to multiple CCxxx0 register, using SPI burst
-  //      access.
-  //
-  //  ARGUMENTS:
-  //      uint8_t addr
-  //          Address of the first CCxxx0 register to be accessed.
-  //      uint8_t *buffer
-  //          Array of bytes to be written into a corresponding range of
-  //          CCxx00 registers, starting by the address specified in _addr_.
-  //      uint8_t count
-  //          Number of bytes to be written to the subsequent CCxxx0 registers.
-  //----------------------------------------------------------------------------
-  void writeBurstReg(uint8_t addr, uint8_t *buffer, uint8_t count);
-
-  //----------------------------------------------------------------------------
-  //  uint8_t halSpiGetStatus(void)
-  //
-  //  DESCRIPTION:
-  //  This function transmits a No Operation Strobe (SNOP) to get the status of
-  //  the radio.
-  // Status byte:
-  // ---------------------------------------------------------------------------
-  //  |          |            |                                                |
-  //  | CHIP_RDY | STATE[2:0] | FIFO_uint8_tS_AVAIL (free bytes in the TX FIFO |
-  //  |          |            |                                                |
-  //  ---------------------------------------------------------------------------
-  // STATE[2:0]:
-  // Value | State
-  //  --------------------------
-  //  000   | Idle
-  //  001   | RX
-  //  010   | TX
-  //  011   | FSTXON
-  //  100   | CALIBRATE
-  //  101   | SETTLING
-  //  110   | RXFIFO_OVERFLOW
-  //  111   | TX_FIFO_UNDERFLOW
-  //----------------------------------------------------------------------------
-  uint8_t getStatus(void);
+  uint8_t readReg(uint8_t reg);
+  uint8_t readStatus(uint8_t reg);
+  uint8_t getStatus();
   void send(uint8_t *txBuffer, uint8_t size);
-  bool receive(uint8_t *rxBuffer, uint8_t *length);
+  bool receive(uint8_t *rxBuffer, uint16_t *length);
+  bool receiveNb(uint8_t *rxBuffer, uint16_t *length);
+  uint16_t receiveNbReady(void);
 };
 
 #endif

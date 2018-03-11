@@ -4,9 +4,9 @@
 #include "cc1101.h"
 
 #define PORT_GDO0 5
-#define byte uint8_t
 
-uint8_t SPI_Rx(void) { return (uint8_t)(SPI1W0 & 0xff); }
+/* direct interface to SPI register read word */
+uint8_t ICACHE_RAM_ATTR SPI_Rx(void) { return (uint8_t)(SPI1W0 & 0xff); }
 
 void CTRL_WAIT_SYNC(uint8_t pin) {
   while (digitalRead(pin) == false) {
@@ -27,20 +27,6 @@ void ICACHE_RAM_ATTR SPI_WAIT_DONE(void) {}
 void ICACHE_RAM_ATTR SPI_TX(uint8_t x) { SPI.transfer(x); }
 uint8_t ICACHE_RAM_ATTR SPI_RX(void) { return SPI_Rx(); }
 void ICACHE_RAM_ATTR SPI_END(void) { digitalWrite(SS, HIGH); }
-
-void (*cb1)(void);
-
-/* Handle interrupt from CC1101 (INT0) gdo0 on pin2 */
-uint8_t cnt;
-void ICACHE_RAM_ATTR Interrupt1(void) {
-  Serial.println(cnt++);
-  cb1();
-}
-
-void SetCb1(uint8_t pin, void (*cb)(void)) {
-  cb1 = cb;
-  attachInterrupt(pin, Interrupt1, FALLING);
-}
 
 /******************************************************************************
  * @fn          function name
@@ -76,8 +62,8 @@ void SPI_INIT(void) {
 //      uint8_t count
 //          Number of bytes to be written to the subsequent CCxxx0 registers.
 //------------------------------------------------------------------------------
-void ICACHE_RAM_ATTR CC1101::readBurstReg(uint8_t addr, uint8_t *buffer,
-                                                uint8_t count) {
+void ICACHE_RAM_ATTR spiReadBurstReg(uint8_t addr, uint8_t *buffer,
+                                     uint8_t count) {
   uint8_t i;
   SPI_BEGIN();
   SPI_TX(addr | READ_BURST);
@@ -104,7 +90,7 @@ void ICACHE_RAM_ATTR CC1101::readBurstReg(uint8_t addr, uint8_t *buffer,
 //      uint8_t
 //          Value of the accessed CCxxx0 register.
 //------------------------------------------------------------------------------
-uint8_t ICACHE_RAM_ATTR CC1101::readReg(uint8_t addr) {
+uint8_t ICACHE_RAM_ATTR spiReadReg(uint8_t addr) {
   uint8_t x;
   SPI_BEGIN();
   SPI_TX(addr | READ_BURST);
@@ -130,7 +116,7 @@ uint8_t ICACHE_RAM_ATTR CC1101::readReg(uint8_t addr) {
 //      uint8_t
 //          Value of the accessed CCxxx0 status register.
 //------------------------------------------------------------------------------
-uint8_t ICACHE_RAM_ATTR CC1101::readStatus(uint8_t addr) {
+uint8_t ICACHE_RAM_ATTR spiReadStatus(uint8_t addr) {
   uint8_t x;
   SPI_BEGIN();
   SPI_TX(addr | READ_BURST);
@@ -152,7 +138,7 @@ uint8_t ICACHE_RAM_ATTR CC1101::readStatus(uint8_t addr) {
 //      uint8_t strobe
 //          Strobe command
 //------------------------------------------------------------------------------
-void ICACHE_RAM_ATTR CC1101::strobe(uint8_t strobe) {
+void ICACHE_RAM_ATTR spiStrobe(uint8_t strobe) {
   SPI_BEGIN();
   SPI_TX(strobe);
   SPI_WAIT();
@@ -171,7 +157,7 @@ void ICACHE_RAM_ATTR CC1101::strobe(uint8_t strobe) {
 //      uint8_t value
 //          Value to be written to the specified CCxxx0 register.
 //------------------------------------------------------------------------------
-void ICACHE_RAM_ATTR CC1101::writeReg(uint8_t addr, uint8_t value) {
+void ICACHE_RAM_ATTR spiWriteReg(uint8_t addr, uint8_t value) {
   SPI_BEGIN();
   SPI_TX(addr);
   SPI_WAIT();
@@ -196,8 +182,8 @@ void ICACHE_RAM_ATTR CC1101::writeReg(uint8_t addr, uint8_t value) {
 //      uint8_t count
 //          Number of bytes to be written to the subsequent CCxxx0 registers.
 //------------------------------------------------------------------------------
-void ICACHE_RAM_ATTR CC1101::writeBurstReg(uint8_t addr, uint8_t *buffer,
-                                           uint8_t count) {
+void ICACHE_RAM_ATTR spiWriteBurstReg(uint8_t addr, uint8_t *buffer,
+                                      uint8_t count) {
   uint8_t i;
   SPI_BEGIN();
   SPI_TX(addr | WRITE_BURST);
@@ -233,7 +219,7 @@ void ICACHE_RAM_ATTR CC1101::writeBurstReg(uint8_t addr, uint8_t *buffer,
 //  110   | RXFIFO_OVERFLOW
 //  111   | TX_FIFO_UNDERFLOW
 //------------------------------------------------------------------------------
-uint8_t ICACHE_RAM_ATTR CC1101::getStatus(void) {
+uint8_t ICACHE_RAM_ATTR spiGetStatus(void) {
   uint8_t x;
   SPI_BEGIN();
   SPI_TX(CC1101_SNOP | READ_BURST);
@@ -265,18 +251,22 @@ void CC1101::init(void) {
 #endif
 
   // reset radio
-  strobe(CC1101_SRES);
+  spiStrobe(CC1101_SRES);
   // write registers to radio
   for (uint16_t i = 0; i < preferredSettings_size; i++) {
     writeByte = preferredSettings[i].data;
     // halSpiWriteBurstReg(preferredSettings[i].addr, &writeByte, 1);
-    writeReg(preferredSettings[i].addr, writeByte);
+    spiWriteReg(preferredSettings[i].addr, writeByte);
   }
 #ifdef PA_TABLE
   // write PA_TABLE
   writeBurstReg(CC1101_PATABLE, paTable, sizeof(paTable));
 #endif
 }
+
+uint8_t CC1101::readStatus(uint8_t reg) { return spiReadStatus(reg); }
+uint8_t CC1101::readReg(uint8_t reg) { return spiReadReg(reg); }
+uint8_t CC1101::getStatus(void) { return spiGetStatus(); }
 
 //------------------------------------------------------------------------------
 //  void send(uint8_t *txBuffer, uint8_t size)
@@ -299,8 +289,8 @@ void CC1101::init(void) {
 //------------------------------------------------------------------------------
 void CC1101::send(uint8_t *txBuffer, uint8_t size) {
 
-  writeBurstReg(CC1101_TXFIFO, txBuffer, size);
-  strobe(CC1101_STX);
+  spiWriteBurstReg(CC1101_TXFIFO, txBuffer, size);
+  spiStrobe(CC1101_STX);
 
   // Wait for GDO0 to be set -> sync transmitted
   CTRL_WAIT_SYNC(PORT_GDO0);
@@ -340,11 +330,14 @@ void CC1101::send(uint8_t *txBuffer, uint8_t size) {
 //          FALSE:  CRC NOT OK (or no packet was put in the RX FIFO due to
 //          filtering)
 //------------------------------------------------------------------------------
-bool CC1101::receive(uint8_t *rxBuffer, uint8_t *length) {
+bool CC1101::receive(uint8_t *rxBuffer, uint16_t *length) {
   uint8_t status[2];
-  uint8_t packetLength;
+  uint8_t packetLength = 20;
+  uint8_t reg;
+  uint8_t fifoLength;
+  uint8_t fifo_overflow;
 
-  strobe(CC1101_SRX);
+  spiStrobe(CC1101_SRX);
 
   // Wait for GDO0 to be set -> sync transmitted
   CTRL_WAIT_SYNC(PORT_GDO0);
@@ -354,37 +347,84 @@ bool CC1101::receive(uint8_t *rxBuffer, uint8_t *length) {
 
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
-  if ((readStatus(CC1101_RXBYTES) & uint8_tS_IN_RXFIFO)) {
+  reg = spiReadStatus(CC1101_RXBYTES);
+  fifoLength = reg & BYTES_IN_RXFIFO;
+  fifo_overflow = reg >> 7;
 
-    // Read length byte
-    packetLength = readReg(CC1101_RXFIFO);
+  Serial.printf("fifo: %d, %x\n", fifo_overflow, fifoLength);
 
-    // Read data from RX FIFO and store in rxBuffer
-    if (packetLength <= *length) {
-      readBurstReg(CC1101_RXFIFO, rxBuffer, packetLength);
-      *length = packetLength;
+  spiReadBurstReg(CC1101_RXFIFO, rxBuffer, packetLength);
+  *length = packetLength;
 
-#if 0
-      // Read the 2 appended status bytes (status[0] = RSSI, status[1] = LQI)
-      halSpiReadBurstReg(CC1101_RXFIFO, status, 2);
+  // Make sure that the radio is in IDLE state before flushing the FIFO
+  // (Unless RXOFF_MODE has been changed, the radio should be in IDLE state
+  // at this point)
+  spiStrobe(CC1101_SIDLE);
 
-      // MSB of LQI is the CRC_OK bit
-      return (status[LQI] & CRC_OK);
-#else
-      return true;
-#endif
-    } else {
-      *length = packetLength;
+  // Flush RX FIFO
+  spiStrobe(CC1101_SFRX);
 
-      // Make sure that the radio is in IDLE state before flushing the FIFO
-      // (Unless RXOFF_MODE has been changed, the radio should be in IDLE state
-      // at this point)
-      strobe(CC1101_SIDLE);
+  return true;
+} // halRfReceivePacket
 
-      // Flush RX FIFO
-      strobe(CC1101_SFRX);
-      return true;
-    }
-  } else
-    return true;
+uint8_t drv_buffer[512];
+uint16_t drv_length;
+uint8_t *_buffer;
+uint16_t *_length;
+volatile uint16_t ready;
+void ICACHE_RAM_ATTR irqHandler(void);
+
+bool CC1101::receiveNb(uint8_t *rxBuffer, uint16_t *length) {
+  _buffer = rxBuffer;
+  _length = length;
+  ready = false;
+  spiStrobe(CC1101_SRX);
+  attachInterrupt(PORT_GDO0, irqHandler, FALLING);
+  return true;
+}
+
+uint16_t CC1101::receiveNbReady(void) {
+  noInterrupts();
+  uint16_t ret = ready;
+  ready = 0;
+  interrupts();
+  return ret;
+}
+
+/* Handle interrupt from CC1101 (INT0) gdo0 on pin2 */
+uint8_t cnt;
+
+void ICACHE_RAM_ATTR irqHandler(void) {
+
+  uint8_t status[2];
+  uint8_t packetLength = 20;
+  uint8_t reg;
+  uint8_t fifoLength;
+  uint8_t fifo_overflow;
+
+  detachInterrupt(PORT_GDO0);
+  Serial.printf("%d irqHandler\n", cnt++);
+
+  // This status register is safe to read since it will not be updated after
+  // the packet has been received (See the CC1100 and 2500 Errata Note)
+  reg = spiReadStatus(CC1101_RXBYTES);
+  fifoLength = reg & BYTES_IN_RXFIFO;
+  fifo_overflow = reg >> 7;
+  Serial.printf("fifo: %d, %x\n", fifo_overflow, fifoLength);
+
+  reg = spiReadStatus(CC1101_PKTSTATUS);
+  spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength);
+  drv_length += fifoLength;
+  if ((reg & (1 << 3)) == 0) {
+    Serial.printf("*\n");
+    memcpy(_buffer, drv_buffer, drv_length);
+    ready = drv_length;
+    drv_length = 0;
+  }
+  // Make sure that the radio is in IDLE state before flushing the FIFO
+  // (Unless RXOFF_MODE has been changed, the radio should be in IDLE state
+  // at this point)
+  spiStrobe(CC1101_SIDLE);
+  // Flush RX FIFO
+  spiStrobe(CC1101_SFRX);
 } // halRfReceivePacket

@@ -395,7 +395,6 @@ uint8_t cnt;
 void ICACHE_RAM_ATTR irqHandler(void) {
 
   uint8_t status[2];
-  uint8_t packetLength = 20;
   uint8_t reg;
   uint8_t fifoLength;
   uint8_t fifo_overflow;
@@ -406,7 +405,7 @@ void ICACHE_RAM_ATTR irqHandler(void) {
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
   reg = spiReadStatus(CC1101_RXBYTES);
-  fifoLength = (reg & BYTES_IN_RXFIFO) - 1;
+  fifoLength = (reg & BYTES_IN_RXFIFO);
   fifo_overflow = reg >> 7;
   // Serial.printf("fifo: %d, %x\n", fifo_overflow, fifoLength);
 
@@ -422,7 +421,7 @@ void ICACHE_RAM_ATTR irqHandler(void) {
   // Make sure that the radio is in IDLE state before flushing the FIFO
   // (Unless RXOFF_MODE has been changed, the radio should be in IDLE state
   // at this point)
-  spiStrobe(CC1101_SIDLE);
+  // spiStrobe(CC1101_SIDLE);
   // Flush RX FIFO
   spiStrobe(CC1101_SFRX);
 } // halRfReceivePacket

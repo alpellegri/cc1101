@@ -61,6 +61,10 @@
             <Value>0x18</Value>
         </Register>
         <Register>
+            <Name>MCSM2</Name>
+            <Value>0x17</Value>
+        </Register>
+        <Register>
             <Name>MDMCFG2</Name>
             <Value>0x31</Value>
         </Register>
@@ -70,7 +74,7 @@
         </Register>
         <Register>
             <Name>MDMCFG4</Name>
-            <Value>0x98</Value>
+            <Value>0x96</Value>
         </Register>
         <Register>
             <Name>PA_TABLE1</Name>
@@ -78,15 +82,23 @@
         </Register>
         <Register>
             <Name>PKTCTRL0</Name>
-            <Value>0x01</Value>
+            <Value>0x00</Value>
+        </Register>
+        <Register>
+            <Name>PKTCTRL1</Name>
+            <Value>0x00</Value>
+        </Register>
+        <Register>
+            <Name>PKTLEN</Name>
+            <Value>0x30</Value>
         </Register>
         <Register>
             <Name>SYNC0</Name>
-            <Value>0x56</Value>
+            <Value>0x00</Value>
         </Register>
         <Register>
             <Name>SYNC1</Name>
-            <Value>0x15</Value>
+            <Value>0x80</Value>
         </Register>
         <Register>
             <Name>TEST0</Name>

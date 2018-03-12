@@ -49,7 +49,7 @@ void setup() {
 
 uint32_t schedule_time;
 uint32_t fame_cnt;
-uint32_t sts;
+uint32_t sts = 0;
 
 void loop() {
   uint8_t data;
@@ -60,7 +60,7 @@ void loop() {
   if (sts == 0) {
     cc1101.receiveNb(Buffer, &BufferLen);
     sts = 1;
-  } else {
+  } else if (sts == 1) {
     uint16_t len = cc1101.receiveNbReady();
     if (len != 0) {
       Serial.printf("Packet length: %d\n", len);

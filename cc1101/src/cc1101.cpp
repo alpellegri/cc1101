@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <SPI.h>
+#include <eSPI.h>
 
 #include "cc1101.h"
 
@@ -21,10 +21,8 @@ void CTRL_WAIT_EOT(uint8_t pin) {
 }
 
 void ICACHE_RAM_ATTR SPI_BEGIN(void) { digitalWrite(SS, LOW); }
-void ICACHE_RAM_ATTR SPI_WAIT(void) { delay(1); }
-void ICACHE_RAM_ATTR SPI_WAIT_MISO(void) {}
-void ICACHE_RAM_ATTR SPI_WAIT_DONE(void) {}
-void ICACHE_RAM_ATTR SPI_TX(uint8_t x) { SPI.transfer(x); }
+void ICACHE_RAM_ATTR SPI_WAIT(void) { delayMicroseconds(100); }
+void ICACHE_RAM_ATTR SPI_TX(uint8_t x) { eSPI.transfer(x); }
 uint8_t ICACHE_RAM_ATTR SPI_RX(void) { return SPI_Rx(); }
 void ICACHE_RAM_ATTR SPI_END(void) { digitalWrite(SS, HIGH); }
 
@@ -41,10 +39,10 @@ void SPI_INIT(void) {
   // SPI.setHwCs(SS);
   pinMode(SS, OUTPUT);
   digitalWrite(SS, HIGH);
-  SPI.begin();
-  SPI.setFrequency(1000000);
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE0);
+  eSPI.begin();
+  eSPI.setFrequency(1000000);
+  eSPI.setBitOrder(MSBFIRST);
+  eSPI.setDataMode(SPI_MODE0);
 }
 
 //------------------------------------------------------------------------------
@@ -348,13 +346,13 @@ bool CC1101::receive(uint8_t *rxBuffer, uint16_t *length) {
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
   reg = spiReadStatus(CC1101_RXBYTES);
-  fifoLength = reg & BYTES_IN_RXFIFO;
+  fifoLength = (reg & BYTES_IN_RXFIFO) - 1;
   fifo_overflow = reg >> 7;
 
   Serial.printf("fifo: %d, %x\n", fifo_overflow, fifoLength);
 
-  spiReadBurstReg(CC1101_RXFIFO, rxBuffer, packetLength);
-  *length = packetLength;
+  spiReadBurstReg(CC1101_RXFIFO, rxBuffer, fifoLength);
+  *length = fifoLength;
 
   // Make sure that the radio is in IDLE state before flushing the FIFO
   // (Unless RXOFF_MODE has been changed, the radio should be in IDLE state
@@ -403,20 +401,20 @@ void ICACHE_RAM_ATTR irqHandler(void) {
   uint8_t fifo_overflow;
 
   detachInterrupt(PORT_GDO0);
-  Serial.printf("%d irqHandler\n", cnt++);
+  // Serial.printf("%d irqHandler\n", cnt++);
 
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
   reg = spiReadStatus(CC1101_RXBYTES);
   fifoLength = (reg & BYTES_IN_RXFIFO) - 1;
   fifo_overflow = reg >> 7;
-  Serial.printf("fifo: %d, %x\n", fifo_overflow, fifoLength);
+  // Serial.printf("fifo: %d, %x\n", fifo_overflow, fifoLength);
 
   reg = spiReadStatus(CC1101_PKTSTATUS);
   spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength);
   drv_length += fifoLength;
   if ((reg & (1 << 3)) == 0) {
-    Serial.printf("*\n");
+    // Serial.printf("*\n");
     memcpy(_buffer, drv_buffer, drv_length);
     ready = drv_length;
     drv_length = 0;

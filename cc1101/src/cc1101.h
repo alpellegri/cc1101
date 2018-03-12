@@ -15,7 +15,7 @@
 #define READ_SINGLE 0x80
 #define READ_BURST 0xC0
 
-// CC2500/CC1100 STROBE, CONTROL AND STATUS REGSITER
+// CC1101 CONFIG REGSITER
 #define CC1101_IOCFG2 0x00   // GDO2 output pin configuration
 #define CC1101_IOCFG1 0x01   // GDO1 output pin configuration
 #define CC1101_IOCFG0 0x02   // GDO0 output pin configuration
@@ -94,6 +94,7 @@
   0x3D // No operation. May be used to pad strobe commands to two
        // bytes for simpler software.
 
+// CC1101 STATUS REGSITER
 #define CC1101_PARTNUM 0x30
 #define CC1101_VERSION 0x31
 #define CC1101_FREQEST 0x32
@@ -112,6 +113,16 @@
 #define CC1101_PATABLE 0x3E
 #define CC1101_TXFIFO 0x3F
 #define CC1101_RXFIFO 0x3F
+
+// Chip states
+#define CC1100_STATE_IDLE 0x00
+#define CC1100_STATE_RX 0x10
+#define CC1100_STATE_TX 0x20
+#define CC1100_STATE_FSTXON 0x30
+#define CC1100_STATE_CALIBRATE 0x40
+#define CC1100_STATE_SETTLING 0x50
+#define CC1100_STATE_RX_OVERFLOW 0x60
+#define CC1100_STATE_TX_UNDERFLOW 0x70
 
 typedef struct {
   uint8_t addr;

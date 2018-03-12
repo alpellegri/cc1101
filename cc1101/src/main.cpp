@@ -40,10 +40,10 @@ void setup() {
   data = cc1101.readStatus(CC1101_VERSION);
   Serial.println(data);
   Serial.print("CC1101_PKTCTRL0 ");
-  data = cc1101.readStatus(CC1101_PKTCTRL0);
+  data = cc1101.readReg(CC1101_PKTCTRL0);
   Serial.println(data);
   Serial.print("CC1101_MDMCFG2 ");
-  data = cc1101.readStatus(CC1101_MDMCFG2);
+  data = cc1101.readReg(CC1101_MDMCFG2);
   Serial.println(data);
 }
 

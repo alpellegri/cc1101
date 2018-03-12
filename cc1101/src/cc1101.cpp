@@ -91,7 +91,7 @@ void ICACHE_RAM_ATTR spiReadBurstReg(uint8_t addr, uint8_t *buffer,
 uint8_t ICACHE_RAM_ATTR spiReadReg(uint8_t addr) {
   uint8_t x;
   SPI_BEGIN();
-  SPI_TX(addr | READ_BURST);
+  SPI_TX(addr | READ_SINGLE);
   SPI_WAIT();
   SPI_TX(0);
   SPI_WAIT();

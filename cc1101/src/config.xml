@@ -61,10 +61,6 @@
             <Value>0x18</Value>
         </Register>
         <Register>
-            <Name>MCSM1</Name>
-            <Value>0x00</Value>
-        </Register>
-        <Register>
             <Name>MDMCFG2</Name>
             <Value>0x31</Value>
         </Register>
@@ -86,11 +82,11 @@
         </Register>
         <Register>
             <Name>SYNC0</Name>
-            <Value>0xaa</Value>
+            <Value>0x56</Value>
         </Register>
         <Register>
             <Name>SYNC1</Name>
-            <Value>0xaa</Value>
+            <Value>0x15</Value>
         </Register>
         <Register>
             <Name>TEST0</Name>

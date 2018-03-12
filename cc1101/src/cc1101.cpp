@@ -408,7 +408,7 @@ void ICACHE_RAM_ATTR irqHandler(void) {
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
   reg = spiReadStatus(CC1101_RXBYTES);
-  fifoLength = reg & BYTES_IN_RXFIFO;
+  fifoLength = (reg & BYTES_IN_RXFIFO) - 1;
   fifo_overflow = reg >> 7;
   Serial.printf("fifo: %d, %x\n", fifo_overflow, fifoLength);
 

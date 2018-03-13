@@ -400,28 +400,26 @@ void ICACHE_RAM_ATTR irqHandler(void) {
   uint8_t fifo_overflow;
 
   detachInterrupt(PORT_GDO0);
-  // Serial.printf("%d irqHandler\n", cnt++);
 
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
   reg = spiReadStatus(CC1101_RXBYTES);
   fifoLength = (reg & BYTES_IN_RXFIFO);
   fifo_overflow = reg >> 7;
-  // Serial.printf("fifo: %d, %x\n", fifo_overflow, fifoLength);
 
   reg = spiReadStatus(CC1101_PKTSTATUS);
-  spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength);
-  drv_length += fifoLength;
   if ((reg & (1 << 3)) == 0) {
-    // Serial.printf("*\n");
+    spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength);
+    drv_length += fifoLength;
     memcpy(_buffer, drv_buffer, drv_length);
     ready = drv_length;
     drv_length = 0;
+    spiStrobe(CC1101_SIDLE);
+    spiStrobe(CC1101_SFRX);
+  } else {
+    spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength-1);
+    drv_length += fifoLength-1;
+    Serial.printf("*\n");
+    spiStrobe(CC1101_SFRX);
   }
-  // Make sure that the radio is in IDLE state before flushing the FIFO
-  // (Unless RXOFF_MODE has been changed, the radio should be in IDLE state
-  // at this point)
-  // spiStrobe(CC1101_SIDLE);
-  // Flush RX FIFO
-  spiStrobe(CC1101_SFRX);
 } // halRfReceivePacket

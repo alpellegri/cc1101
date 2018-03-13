@@ -417,9 +417,28 @@ void ICACHE_RAM_ATTR irqHandler(void) {
     spiStrobe(CC1101_SIDLE);
     spiStrobe(CC1101_SFRX);
   } else {
-    spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength-1);
-    drv_length += fifoLength-1;
+    spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength - 1);
+    drv_length += fifoLength - 1;
     Serial.printf("*\n");
     spiStrobe(CC1101_SFRX);
   }
 } // halRfReceivePacket
+
+uint16_t manch_enc(uint8_t y) {
+  uint8_t x = ~y;
+  uint16_t z;
+  for (int i = 0; i < 8; i++) // unroll for more speed...
+  {
+    z |= (x & (1U << i)) << i | (y & (1U << i)) << (i + 1);
+  }
+  return z;
+}
+
+void manch_dec(uint16_t x, uint8_t y[2]) {
+  y[0] = y[1] = 0;
+  for (uint8_t i = 0; i < 8; i++) // unroll for more speed...
+  {
+    y[0] |= (x & (1U << 2 * i)) >> i;
+    y[1] |= (x & (1U << (2 * i + 1))) >> (i + 1);
+  }
+}

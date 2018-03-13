@@ -45,6 +45,18 @@ void setup() {
   Serial.print("CC1101_MDMCFG2 ");
   data = cc1101.readReg(CC1101_MDMCFG2);
   Serial.println(data);
+
+  uint8_t x;    // Interleave bits of x and y, so that all of the
+  uint8_t y[2]; // bits of x are in the even positions and y in the odd;
+  uint16_t z = 0;  // z gets the resulting Morton Number.
+  x = 0x0001;
+  z = manch_enc(x);
+  printf("%x\n", z);
+
+  manch_dec(z, y);
+  printf("%x\n", y[0]);
+  printf("%x\n", y[1]);
+  printf("%x\n", y[1] ^ y[0]);
 }
 
 uint32_t schedule_time;

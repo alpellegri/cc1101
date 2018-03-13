@@ -153,4 +153,7 @@ public:
   uint16_t receiveNbReady(void);
 };
 
+uint16_t manch_enc(uint8_t y);
+void manch_dec(uint16_t x, uint8_t y[2]);
+
 #endif

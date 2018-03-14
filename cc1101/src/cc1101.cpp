@@ -431,8 +431,6 @@ void ICACHE_RAM_ATTR irqHandler(void) {
     spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength);
     drv_length += fifoLength;
     Serial.printf("* %d\n", drv_length);
-    // spiStrobe(CC1101_SIDLE);
-    // spiStrobe(CC1101_SFRX);
   }
 
 } // halRfReceivePacket

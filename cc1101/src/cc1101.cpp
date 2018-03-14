@@ -21,11 +21,23 @@ void CTRL_WAIT_EOT(uint8_t pin) {
   }
 }
 
-void ICACHE_RAM_ATTR SPI_BEGIN(void) { digitalWrite(SS, LOW); }
-void ICACHE_RAM_ATTR SPI_WAIT(void) { delayMicroseconds(100); }
-void ICACHE_RAM_ATTR SPI_TX(uint8_t x) { eSPI.transfer(x); }
-uint8_t ICACHE_RAM_ATTR SPI_RX(void) { return SPI_Rx(); }
-void ICACHE_RAM_ATTR SPI_END(void) { digitalWrite(SS, HIGH); }
+#define SPI_BEGIN()                                                            \
+  do {                                                                         \
+    digitalWrite(SS, LOW);                                                     \
+  } while (0);
+#define SPI_WAIT()                                                             \
+  do {                                                                         \
+    delayMicroseconds(100);                                                    \
+  } while (0);
+#define SPI_TX(x)                                                              \
+  do {                                                                         \
+    eSPI.transfer(x);                                                          \
+  } while (0);
+#define SPI_RX() SPI_Rx()
+#define SPI_END()                                                              \
+  do {                                                                         \
+    digitalWrite(SS, HIGH);                                                    \
+  } while (0);
 
 /******************************************************************************
  * @fn          function name
@@ -442,21 +454,21 @@ void manch_enc(uint8_t *in, uint8_t *out, uint16_t lenght) {
     for (int i = 0; i < 8; i++) {
       z |= (((~x) & (1U << i)) << i) | ((x & (1U << i)) << (i + 1));
     }
-    out[2*j+0] = z>>8;
-    out[2*j+1] = z>>0;
+    out[2 * j + 0] = z >> 8;
+    out[2 * j + 1] = z >> 0;
   }
 }
 
 void manch_dec(uint8_t *in, uint8_t *out, uint16_t lenght) {
   for (int j = 0; j < lenght; j++) {
-    uint16_t x = (in[2*j] << 8) | (in[2*j+1] << 0);
+    uint16_t x = (in[2 * j] << 8) | (in[2 * j + 1] << 0);
     out[j] = 0;
     uint8_t tmp = 0;
     for (uint8_t i = 0; i < 8; i++) {
-      tmp    |= (x & (1U << (2 * i))) >> i;
+      tmp |= (x & (1U << (2 * i))) >> i;
       out[j] |= (x & (1U << (2 * i + 1))) >> (i + 1);
     }
-    if ((tmp^out[j]) != 0xFF) {
+    if ((tmp ^ out[j]) != 0xFF) {
       // printf("manch error %d\n", j);
     }
   }

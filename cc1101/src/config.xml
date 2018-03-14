@@ -54,6 +54,10 @@
         </Register>
         <Register>
             <Name>IOCFG0</Name>
+            <Value>0x01</Value>
+        </Register>
+        <Register>
+            <Name>IOCFG2</Name>
             <Value>0x06</Value>
         </Register>
         <Register>

@@ -4,6 +4,7 @@
 #include "cc1101.h"
 
 #define PORT_GDO0 5
+#define PORT_GDO2 4
 
 /* direct interface to SPI register read word */
 uint8_t ICACHE_RAM_ATTR SPI_Rx(void) { return (uint8_t)(SPI1W0 & 0xff); }
@@ -380,7 +381,8 @@ bool CC1101::receiveNb(uint8_t *rxBuffer, uint16_t *length) {
   _length = length;
   ready = false;
   spiStrobe(CC1101_SRX);
-  attachInterrupt(PORT_GDO0, irqHandler, CHANGE);
+  attachInterrupt(PORT_GDO0, irqHandler, RISING);
+  attachInterrupt(PORT_GDO2, irqHandler, FALLING);
   return true;
 }
 
@@ -429,8 +431,8 @@ void ICACHE_RAM_ATTR irqHandler(void) {
     spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength);
     drv_length += fifoLength;
     Serial.printf("* %d\n", drv_length);
-    spiStrobe(CC1101_SIDLE);
-    spiStrobe(CC1101_SFRX);
+    // spiStrobe(CC1101_SIDLE);
+    // spiStrobe(CC1101_SFRX);
   }
 
 } // halRfReceivePacket

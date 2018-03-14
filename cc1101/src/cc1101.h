@@ -132,6 +132,9 @@ typedef struct {
 extern const registerSetting_t preferredSettings[];
 extern const uint8_t preferredSettings_size;
 
+void manch_enc(uint8_t *in, uint8_t *out, uint16_t lenght);
+void manch_dec(uint8_t *in, uint8_t *out, uint16_t lenght);
+
 /**
  * Class: CC1101
  *

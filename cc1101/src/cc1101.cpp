@@ -136,11 +136,14 @@ uint8_t ICACHE_RAM_ATTR spiReadStatus(uint8_t addr) {
 //      uint8_t strobe
 //          Strobe command
 //------------------------------------------------------------------------------
-void ICACHE_RAM_ATTR spiStrobe(uint8_t strobe) {
+uint8_t ICACHE_RAM_ATTR spiStrobe(uint8_t strobe) {
+  uint8_t x;
   SPI_BEGIN();
   SPI_TX(strobe);
   SPI_WAIT();
+  x = SPI_RX();
   SPI_END();
+  return x;
 } // halSpiStrobe
 
 //------------------------------------------------------------------------------
@@ -377,7 +380,7 @@ bool CC1101::receiveNb(uint8_t *rxBuffer, uint16_t *length) {
   _length = length;
   ready = false;
   spiStrobe(CC1101_SRX);
-  attachInterrupt(PORT_GDO0, irqHandler, FALLING);
+  attachInterrupt(PORT_GDO0, irqHandler, CHANGE);
   return true;
 }
 
@@ -399,8 +402,13 @@ void ICACHE_RAM_ATTR irqHandler(void) {
   uint8_t fifoLength;
   uint8_t fifo_overflow;
 
-  detachInterrupt(PORT_GDO0);
+  // detachInterrupt(PORT_GDO0);
 
+  if (digitalRead(PORT_GDO0) == true) {
+    Serial.printf("> %d\n", drv_length);
+  } else {
+    Serial.printf("< %d\n", drv_length);
+  }
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
   reg = spiReadStatus(CC1101_RXBYTES);
@@ -414,31 +422,42 @@ void ICACHE_RAM_ATTR irqHandler(void) {
     memcpy(_buffer, drv_buffer, drv_length);
     ready = drv_length;
     drv_length = 0;
+    Serial.printf("< %d\n", drv_length);
     spiStrobe(CC1101_SIDLE);
     spiStrobe(CC1101_SFRX);
   } else {
-    spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength - 1);
-    drv_length += fifoLength - 1;
-    Serial.printf("*\n");
+    spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength);
+    drv_length += fifoLength;
+    Serial.printf("* %d\n", drv_length);
+    spiStrobe(CC1101_SIDLE);
     spiStrobe(CC1101_SFRX);
   }
+
 } // halRfReceivePacket
 
-uint16_t manch_enc(uint8_t y) {
-  uint8_t x = ~y;
-  uint16_t z;
-  for (int i = 0; i < 8; i++) // unroll for more speed...
-  {
-    z |= (x & (1U << i)) << i | (y & (1U << i)) << (i + 1);
+void manch_enc(uint8_t *in, uint8_t *out, uint16_t lenght) {
+  for (int j = 0; j < lenght; j++) {
+    uint8_t x = in[j];
+    uint16_t z = 0;
+    for (int i = 0; i < 8; i++) {
+      z |= (((~x) & (1U << i)) << i) | ((x & (1U << i)) << (i + 1));
+    }
+    out[2*j+0] = z>>8;
+    out[2*j+1] = z>>0;
   }
-  return z;
 }
 
-void manch_dec(uint16_t x, uint8_t y[2]) {
-  y[0] = y[1] = 0;
-  for (uint8_t i = 0; i < 8; i++) // unroll for more speed...
-  {
-    y[0] |= (x & (1U << 2 * i)) >> i;
-    y[1] |= (x & (1U << (2 * i + 1))) >> (i + 1);
+void manch_dec(uint8_t *in, uint8_t *out, uint16_t lenght) {
+  for (int j = 0; j < lenght; j++) {
+    uint16_t x = (in[2*j] << 8) | (in[2*j+1] << 0);
+    out[j] = 0;
+    uint8_t tmp = 0;
+    for (uint8_t i = 0; i < 8; i++) {
+      tmp    |= (x & (1U << (2 * i))) >> i;
+      out[j] |= (x & (1U << (2 * i + 1))) >> (i + 1);
+    }
+    if ((tmp^out[j]) != 0xFF) {
+      // printf("manch error %d\n", j);
+    }
   }
 }

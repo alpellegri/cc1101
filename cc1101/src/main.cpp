@@ -45,18 +45,6 @@ void setup() {
   Serial.print("CC1101_MDMCFG2 ");
   data = cc1101.readReg(CC1101_MDMCFG2);
   Serial.println(data);
-
-  uint8_t x;    // Interleave bits of x and y, so that all of the
-  uint8_t y[2]; // bits of x are in the even positions and y in the odd;
-  uint16_t z = 0;  // z gets the resulting Morton Number.
-  x = 0x0001;
-  z = manch_enc(x);
-  printf("%x\n", z);
-
-  manch_dec(z, y);
-  printf("%x\n", y[0]);
-  printf("%x\n", y[1]);
-  printf("%x\n", y[1] ^ y[0]);
 }
 
 uint32_t schedule_time;
@@ -65,7 +53,8 @@ uint32_t sts = 0;
 
 void loop() {
   uint8_t data;
-  uint8_t Buffer[512];
+  uint8_t Buffer[128];
+  uint8_t Buffer2[128];
   uint16_t BufferLen;
   uint16_t i;
 
@@ -79,7 +68,14 @@ void loop() {
       for (i = 0; i < len; i++) {
         Serial.printf("%02X ", (uint8_t)Buffer[i]);
       }
-      Serial.printf("\n", len);
+      Serial.printf("\n");
+
+      manch_dec(Buffer, Buffer2, len);
+      Serial.printf("Packet length: %d\n", len);
+      for (i = 0; i < len; i++) {
+        Serial.printf("%02X ", (uint8_t)Buffer2[i]);
+      }
+      Serial.printf("\n");
       cc1101.receiveNb(Buffer, &BufferLen);
     }
   }

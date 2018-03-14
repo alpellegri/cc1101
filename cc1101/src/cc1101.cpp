@@ -49,10 +49,10 @@ void CTRL_WAIT_EOT(uint8_t pin) {
  * @return      describe return value, if any
  */
 void SPI_INIT(void) {
-  // SPI.setHwCs(SS);
   pinMode(SS, OUTPUT);
   digitalWrite(SS, HIGH);
   eSPI.begin();
+  // eSPI.setHwCs(true);
   eSPI.setFrequency(1000000);
   eSPI.setBitOrder(MSBFIRST);
   eSPI.setDataMode(SPI_MODE0);

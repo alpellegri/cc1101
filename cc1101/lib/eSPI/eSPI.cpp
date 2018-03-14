@@ -176,7 +176,7 @@ void ICACHE_RAM_ATTR eSPIClass::setDataMode(uint8_t dataMode) {
 
 }
 
-void ICACHE_RAM_ATTR eSPIClass::setBitOrder(uint8_t bitOrder) {
+void eSPIClass::setBitOrder(uint8_t bitOrder) {
     if(bitOrder == MSBFIRST) {
         SPI1C &= ~(SPICWBO | SPICRBO);
     } else {
@@ -189,11 +189,11 @@ void ICACHE_RAM_ATTR eSPIClass::setBitOrder(uint8_t bitOrder) {
  * @param reg
  * @return
  */
-static uint32_t ICACHE_RAM_ATTR ClkRegToFreq(spiClk_t * reg) {
+static uint32_t ClkRegToFreq(spiClk_t * reg) {
     return (ESP8266_CLOCK / ((reg->regPre + 1) * (reg->regN + 1)));
 }
 
-void ICACHE_RAM_ATTR eSPIClass::setFrequency(uint32_t freq) {
+void eSPIClass::setFrequency(uint32_t freq) {
     static uint32_t lastSetFrequency = 0;
     static uint32_t lastSetRegister = 0;
 
@@ -276,7 +276,7 @@ void ICACHE_RAM_ATTR eSPIClass::setFrequency(uint32_t freq) {
 
 }
 
-void ICACHE_RAM_ATTR eSPIClass::setClockDivider(uint32_t clockDiv) {
+void eSPIClass::setClockDivider(uint32_t clockDiv) {
     if(clockDiv == 0x80000000) {
         GPMUX |= (1 << 9); // Set bit 9 if sysclock required
     } else {

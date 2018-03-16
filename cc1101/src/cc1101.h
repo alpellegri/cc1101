@@ -3,6 +3,11 @@
 #ifndef _CC1101_H
 #define _CC1101_H
 
+// #define CC1101_MODE_PACKET
+
+#define PORT_GDO0 5
+#define PORT_GDO2 4
+
 // Defines
 #define CRC_OK 0x80
 #define GDO0_PIN P0_6
@@ -149,6 +154,7 @@ public:
   void reset(void);
   uint8_t readReg(uint8_t reg);
   uint8_t readStatus(uint8_t reg);
+  uint8_t strobe(uint8_t value);
   uint8_t getStatus();
   void send(uint8_t *txBuffer, uint8_t size);
   bool receive(uint8_t *rxBuffer, uint16_t *length);

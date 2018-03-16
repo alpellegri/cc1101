@@ -3,9 +3,6 @@
 
 #include "cc1101.h"
 
-#define PORT_GDO0 5
-#define PORT_GDO2 4
-
 /* direct interface to SPI register read word */
 uint8_t ICACHE_RAM_ATTR SPI_Rx(void) { return (uint8_t)(SPI1W0 & 0xff); }
 
@@ -280,6 +277,7 @@ void CC1101::init(void) {
 
 uint8_t CC1101::readStatus(uint8_t reg) { return spiReadStatus(reg); }
 uint8_t CC1101::readReg(uint8_t reg) { return spiReadReg(reg); }
+uint8_t CC1101::strobe(uint8_t value) { return spiStrobe(value); }
 uint8_t CC1101::getStatus(void) { return spiGetStatus(); }
 
 //------------------------------------------------------------------------------
@@ -416,13 +414,12 @@ void ICACHE_RAM_ATTR irqHandler(void) {
   uint8_t fifoLength;
   uint8_t fifo_overflow;
 
-  // detachInterrupt(PORT_GDO0);
-
   if (digitalRead(PORT_GDO0) == true) {
-    Serial.printf("> %d\n", drv_length);
+    Serial.printf(">\n");
   } else {
-    Serial.printf("< %d\n", drv_length);
+    Serial.printf("<\n");
   }
+
   // This status register is safe to read since it will not be updated after
   // the packet has been received (See the CC1100 and 2500 Errata Note)
   reg = spiReadStatus(CC1101_RXBYTES);
@@ -436,13 +433,11 @@ void ICACHE_RAM_ATTR irqHandler(void) {
     memcpy(_buffer, drv_buffer, drv_length);
     ready = drv_length;
     drv_length = 0;
-    Serial.printf("< %d\n", drv_length);
     spiStrobe(CC1101_SIDLE);
     spiStrobe(CC1101_SFRX);
   } else {
     spiReadBurstReg(CC1101_RXFIFO, &drv_buffer[drv_length], fifoLength);
     drv_length += fifoLength;
-    Serial.printf("* %d\n", drv_length);
   }
 
 } // halRfReceivePacket

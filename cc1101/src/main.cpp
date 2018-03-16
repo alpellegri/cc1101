@@ -3,13 +3,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <RCSwitch.h>
+
 #include "cc1101.h"
 
 #define LEDOUTPUT 16
 #define PKTLEN 30
 
-static uint8_t packetSemaphore;
-static uint32_t packetCounter;
+static uint16_t packetCounter;
 
 static void createPacket(uint8_t txBuffer[]) {
   txBuffer[0] = PKTLEN;                        // Length byte
@@ -24,6 +25,7 @@ static void createPacket(uint8_t txBuffer[]) {
 }
 
 CC1101 cc1101;
+RCSwitch mySwitch = RCSwitch();
 
 void setup() {
   uint8_t data;
@@ -45,11 +47,17 @@ void setup() {
   Serial.print("CC1101_MDMCFG2 ");
   data = cc1101.readReg(CC1101_MDMCFG2);
   Serial.println(data);
+#ifndef CC1101_MODE_PACKET
+  mySwitch.enableReceive(PORT_GDO2);
+  cc1101.strobe(CC1101_SIDLE);
+  cc1101.strobe(CC1101_SFRX);
+#endif
 }
 
 uint32_t schedule_time;
 uint32_t fame_cnt;
-uint32_t sts = 0;
+uint32_t sts = 3;
+void irqHandler(void);
 
 void loop() {
   uint8_t data;
@@ -57,6 +65,19 @@ void loop() {
   uint8_t Buffer2[128];
   uint16_t BufferLen;
   uint16_t i;
+
+  if (mySwitch.available()) {
+
+    Serial.print("Received ");
+    Serial.print(mySwitch.getReceivedValue());
+    Serial.print(" / ");
+    Serial.print(mySwitch.getReceivedBitlength());
+    Serial.print("bit ");
+    Serial.print("Protocol: ");
+    Serial.println(mySwitch.getReceivedProtocol());
+
+    mySwitch.resetAvailable();
+  }
 
   if (sts == 0) {
     cc1101.receiveNb(Buffer, &BufferLen);
@@ -94,7 +115,11 @@ void loop() {
     cc1101.send(Buffer, PKTLEN + 1);
 #else
 #if 1
-    // cc1101.receiveNb(Buffer, &BufferLen);
+#ifndef CC1101_MODE_PACKET
+    attachInterrupt(PORT_GDO2, irqHandler, CHANGE);
+    cc1101.strobe(CC1101_SIDLE);
+    cc1101.strobe(CC1101_SFRX);
+#endif
 #else
     fame_cnt++;
     data = cc1101.readStatus(CC1101_MARCSTATE);

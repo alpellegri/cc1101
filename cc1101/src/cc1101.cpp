@@ -414,7 +414,7 @@ void ICACHE_RAM_ATTR irqHandler(void) {
   uint8_t fifoLength;
   uint8_t fifo_overflow;
 
-  if (digitalRead(PORT_GDO0) == true) {
+  if (digitalRead(PORT_GDO2) == true) {
     Serial.printf(">\n");
   } else {
     Serial.printf("<\n");

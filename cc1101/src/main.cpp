@@ -48,9 +48,11 @@ void setup() {
   data = cc1101.readReg(CC1101_MDMCFG2);
   Serial.println(data);
 #ifndef CC1101_MODE_PACKET
+  mySwitch.enableTransmit(PORT_GDO0);
+  mySwitch.setPolarity(true);
   mySwitch.enableReceive(PORT_GDO2);
   cc1101.strobe(CC1101_SIDLE);
-  cc1101.strobe(CC1101_SFRX);
+  cc1101.strobe(CC1101_STX);
 #endif
 }
 
@@ -67,7 +69,6 @@ void loop() {
   uint16_t i;
 
   if (mySwitch.available()) {
-
     Serial.print("Received ");
     Serial.print(mySwitch.getReceivedValue());
     Serial.print(" / ");
@@ -116,9 +117,10 @@ void loop() {
 #else
 #if 1
 #ifndef CC1101_MODE_PACKET
-    attachInterrupt(PORT_GDO2, irqHandler, CHANGE);
-    cc1101.strobe(CC1101_SIDLE);
-    cc1101.strobe(CC1101_SFRX);
+    mySwitch.send("000000000001010100010001");
+    // attachInterrupt(PORT_GDO2, irqHandler, CHANGE);
+    // cc1101.strobe(CC1101_SIDLE);
+    // cc1101.strobe(CC1101_SRX);
 #endif
 #else
     fame_cnt++;

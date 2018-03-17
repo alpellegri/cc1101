@@ -301,6 +301,10 @@ uint8_t ICACHE_RAM_ATTR eSPIClass::transfer(uint8_t data) {
     return (uint8_t) (SPI1W0 & 0xff);
 }
 
+uint8_t ICACHE_RAM_ATTR eSPIClass::read(void) {
+    return (uint8_t) (SPI1W0 & 0xff);
+}
+
 uint16_t ICACHE_RAM_ATTR eSPIClass::transfer16(uint16_t data) {
     union {
             uint16_t val;

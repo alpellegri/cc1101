@@ -63,6 +63,7 @@ public:
   void setClockDivider(uint32_t clockDiv);
   void beginTransaction(eSPISettings settings);
   uint8_t transfer(uint8_t data);
+  uint8_t read(void);
   uint16_t transfer16(uint16_t data);
   void write(uint8_t data);
   void write16(uint16_t data);

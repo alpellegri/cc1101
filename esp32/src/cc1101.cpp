@@ -3,9 +3,6 @@
 
 #include "cc1101.h"
 
-/* direct interface to SPI register read word */
-uint8_t ICACHE_RAM_ATTR SPI_Rx(void) { return 0;/*(uint8_t)(SPI1W0 & 0xff);*/ }
-
 void CTRL_WAIT_SYNC(uint8_t pin) {
   while (digitalRead(pin) == false) {
     delay(1);
@@ -30,7 +27,7 @@ void CTRL_WAIT_EOT(uint8_t pin) {
   do {                                                                         \
     eSPI.transfer(x);                                                          \
   } while (0);
-#define SPI_RX() SPI_Rx()
+#define SPI_RX() eSPI.read()
 #define SPI_END()                                                              \
   do {                                                                         \
     digitalWrite(SS, HIGH);                                                    \

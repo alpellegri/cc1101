@@ -18,7 +18,7 @@ static void createPacket(uint8_t txBuffer[]) {
   txBuffer[2] = (uint8_t)packetCounter;        // LSB of packetCounter
 
   // fill rest of buffer with random bytes
-  for (uint8 i = 3; i < (PKTLEN + 1); i++) {
+  for (uint8_t i = 3; i < (PKTLEN + 1); i++) {
     // txBuffer[i] = (uint8_t)rand();
     txBuffer[i] = (uint8_t)i;
   }

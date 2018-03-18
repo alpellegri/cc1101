@@ -8,21 +8,6 @@
 #include "cc1101.h"
 
 #define LEDOUTPUT 16
-#define PKTLEN 30
-
-static uint16_t packetCounter;
-
-static void createPacket(uint8_t txBuffer[]) {
-  txBuffer[0] = PKTLEN;                        // Length byte
-  txBuffer[1] = (uint8_t)(packetCounter >> 8); // MSB of packetCounter
-  txBuffer[2] = (uint8_t)packetCounter;        // LSB of packetCounter
-
-  // fill rest of buffer with random bytes
-  for (uint8_t i = 3; i < (PKTLEN + 1); i++) {
-    // txBuffer[i] = (uint8_t)rand();
-    txBuffer[i] = (uint8_t)i;
-  }
-}
 
 CC1101 cc1101;
 RCSwitch mySwitch = RCSwitch();
@@ -60,9 +45,6 @@ void irqHandler(void);
 
 void loop() {
   uint8_t data;
-  uint8_t Buffer[128];
-  uint8_t Buffer2[128];
-  uint16_t BufferLen;
   uint16_t i;
 
   if (mySwitch.available()) {

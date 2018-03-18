@@ -41,7 +41,6 @@ void setup() {
 }
 
 uint32_t schedule_time;
-void irqHandler(void);
 
 void loop() {
   uint8_t data;

@@ -1,0 +1,89 @@
+#include <Arduino.h>
+
+#include <stdio.h>
+#include <string.h>
+
+#include <RCSwitch.h>
+
+#include "cc1101.h"
+
+#define LEDOUTPUT 16
+#define PKTLEN 30
+
+static uint16_t packetCounter;
+
+static void createPacket(uint8_t txBuffer[]) {
+  txBuffer[0] = PKTLEN;                        // Length byte
+  txBuffer[1] = (uint8_t)(packetCounter >> 8); // MSB of packetCounter
+  txBuffer[2] = (uint8_t)packetCounter;        // LSB of packetCounter
+
+  // fill rest of buffer with random bytes
+  for (uint8_t i = 3; i < (PKTLEN + 1); i++) {
+    // txBuffer[i] = (uint8_t)rand();
+    txBuffer[i] = (uint8_t)i;
+  }
+}
+
+CC1101 cc1101;
+RCSwitch mySwitch = RCSwitch();
+
+void setup() {
+  uint8_t data;
+  Serial.begin(115200);
+
+  cc1101.init();
+
+  // setup the blinker output
+  pinMode(LEDOUTPUT, OUTPUT);
+  digitalWrite(LEDOUTPUT, LOW);
+
+  Serial.println("");
+  Serial.print("CC1101_VERSION ");
+  data = cc1101.readStatus(CC1101_VERSION);
+  Serial.println(data);
+  Serial.print("CC1101_PKTCTRL0 ");
+  data = cc1101.readReg(CC1101_PKTCTRL0);
+  Serial.println(data);
+  Serial.print("CC1101_MDMCFG2 ");
+  data = cc1101.readReg(CC1101_MDMCFG2);
+  Serial.println(data);
+
+  mySwitch.enableTransmit(PORT_GDO0);
+  mySwitch.setPolarity(true);
+  mySwitch.enableReceive(PORT_GDO2);
+  cc1101.strobe(CC1101_SIDLE);
+  cc1101.strobe(CC1101_SRX);
+}
+
+uint32_t schedule_time;
+void irqHandler(void);
+
+void loop() {
+  uint8_t data;
+  uint8_t Buffer[128];
+  uint8_t Buffer2[128];
+  uint16_t BufferLen;
+  uint16_t i;
+
+  if (mySwitch.available()) {
+    Serial.print("Received ");
+    Serial.print(mySwitch.getReceivedValue());
+    Serial.print(" / ");
+    Serial.print(mySwitch.getReceivedBitlength());
+    Serial.print("bit ");
+    Serial.print("Protocol: ");
+    Serial.println(mySwitch.getReceivedProtocol());
+
+    mySwitch.resetAvailable();
+  }
+
+  uint32_t current_time = millis();
+  if ((current_time - schedule_time) > 1000) {
+    schedule_time = current_time;
+    digitalWrite(LEDOUTPUT, LOW);
+
+    // mySwitch.send("000000000001010100010001");
+
+    digitalWrite(LEDOUTPUT, HIGH);
+  }
+}

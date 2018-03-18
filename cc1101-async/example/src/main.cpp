@@ -9,6 +9,10 @@
 
 #define LEDOUTPUT 16
 
+#define PORT_GDO0 5
+#define PORT_GDO2 4
+
+
 CC1101 cc1101;
 RCSwitch mySwitch = RCSwitch();
 

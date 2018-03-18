@@ -3,9 +3,6 @@
 #ifndef _CC1101_H
 #define _CC1101_H
 
-#define PORT_GDO0 5
-#define PORT_GDO2 4
-
 // Defines
 #define CRC_OK 0x80
 #define GDO0_PIN P0_6

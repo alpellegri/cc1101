@@ -3,8 +3,6 @@
 #ifndef _CC1101_H
 #define _CC1101_H
 
-// #define CC1101_MODE_PACKET
-
 #define PORT_GDO0 5
 #define PORT_GDO2 4
 

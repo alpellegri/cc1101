@@ -234,6 +234,7 @@ uint8_t ICACHE_RAM_ATTR spiGetStatus(void) {
   SPI_WAIT();
   x = SPI_RX();
   SPI_END();
+  return x;
 } // spiGetTxStatus
 
 /**
